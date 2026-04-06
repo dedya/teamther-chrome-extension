@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Results Preview — Teamther.ai</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="sidepanel/sidepanel.css"/>
+<style>
+  body { padding: 16px; background: #F8FAFC; max-width: 400px; }
+</style>
+</head>
+<body>
+
+<section class="sp-results" style="display:flex;flex-direction:column;gap:12px;">
+
+  <!-- Candidate name -->
+  <div class="sp-results-candidate" style="font-size:15px;font-weight:700;color:#2A3284;text-align:center;">
+    Jean-Michel Dupont
+  </div>
+
+  <!-- Unified Score + Details Card -->
+  <div class="sp-score-details-card">
+    <div class="sp-score-details-header">
+      <span class="sp-score-details-title">SCORE &amp; DÉTAILS</span>
+      <span class="sp-score-details-arrow">↓</span>
+    </div>
+    <div class="sp-score-details-body">
+
+      <!-- LEFT: Ring -->
+      <div class="sp-score-ring-col">
+        <div class="sp-score-ring-wrap">
+          <svg class="sp-score-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="sp-ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="sp-ring-fill score-fort" cx="60" cy="60" r="50"
+              style="stroke-dasharray:314.16;stroke-dashoffset:75.4;"/>
+          </svg>
+          <div class="sp-score-inner">
+            <span class="sp-score-number">77</span>
+          </div>
+        </div>
+        <span class="sp-rec-badge tier-fort">Fort</span>
+        <a class="sp-source-link">View Profile →</a>
+      </div>
+
+      <!-- RIGHT: Bars -->
+      <div class="sp-subscores-col">
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Exp. <span class="sp-subscore-key">(E)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--exp" style="width:70%"></div>
+          </div>
+          <span class="sp-subscore-val">70</span>
+        </div>
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Comp. <span class="sp-subscore-key">(S)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--comp" style="width:75%"></div>
+          </div>
+          <span class="sp-subscore-val">75</span>
+        </div>
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Édu. <span class="sp-subscore-key">(D)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--edu" style="width:95%"></div>
+          </div>
+          <span class="sp-subscore-val">95</span>
+        </div>
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Lan. <span class="sp-subscore-key">(L)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--lan" style="width:100%"></div>
+          </div>
+          <span class="sp-subscore-val">100</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Second example card — Faible -->
+  <div class="sp-score-details-card">
+    <div class="sp-score-details-header">
+      <span class="sp-score-details-title">SCORE &amp; DÉTAILS</span>
+      <span class="sp-score-details-arrow">↓</span>
+    </div>
+    <div class="sp-score-details-body">
+      <div class="sp-score-ring-col">
+        <div class="sp-score-ring-wrap">
+          <svg class="sp-score-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="sp-ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="sp-ring-fill score-faible" cx="60" cy="60" r="50"
+              style="stroke-dasharray:314.16;stroke-dashoffset:180.5;"/>
+          </svg>
+          <div class="sp-score-inner">
+            <span class="sp-score-number">53</span>
+          </div>
+        </div>
+        <span class="sp-rec-badge tier-faible">Faible</span>
+        <a class="sp-source-link" style="visibility:hidden;">link</a>
+      </div>
+      <div class="sp-subscores-col">
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Exp. <span class="sp-subscore-key">(E)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--exp" style="width:45%"></div>
+          </div>
+          <span class="sp-subscore-val">45</span>
+        </div>
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Comp. <span class="sp-subscore-key">(S)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--comp" style="width:42%"></div>
+          </div>
+          <span class="sp-subscore-val">42</span>
+        </div>
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Édu. <span class="sp-subscore-key">(D)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--edu" style="width:90%"></div>
+          </div>
+          <span class="sp-subscore-val">90</span>
+        </div>
+        <div class="sp-subscore-row">
+          <span class="sp-subscore-label">Lan. <span class="sp-subscore-key">(L)</span></span>
+          <div class="sp-subscore-bar-wrap">
+            <div class="sp-subscore-bar sp-subscore-bar--lan" style="width:68%"></div>
+          </div>
+          <span class="sp-subscore-val">68</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strengths -->
+  <div class="sp-list-card sp-list-card--strengths">
+    <h3 class="sp-list-title">
+      <span class="sp-list-icon">✅</span>
+      <span>Strengths</span>
+    </h3>
+    <ul class="sp-list">
+      <li>5+ years of relevant industry experience</li>
+      <li>Strong proficiency in required technical skills</li>
+      <li>Advanced degree aligned with role requirements</li>
+    </ul>
+  </div>
+
+  <!-- Weaknesses -->
+  <div class="sp-list-card sp-list-card--weaknesses">
+    <h3 class="sp-list-title">
+      <span class="sp-list-icon">⚠️</span>
+      <span>Weaknesses</span>
+    </h3>
+    <ul class="sp-list">
+      <li>Limited exposure to cloud-native environments</li>
+      <li>No leadership or team management experience</li>
+    </ul>
+  </div>
+
+  <!-- Overall Verdict -->
+  <div class="sp-reasoning-card">
+    <h3 class="sp-list-title">
+      <span class="sp-list-icon">🧠</span>
+      <span>Overall Verdict</span>
+    </h3>
+    <p class="sp-reasoning-text">
+      This candidate demonstrates strong educational credentials and technical competencies
+      that align well with the job requirements. The primary concern is limited hands-on
+      experience with modern cloud infrastructure, which may require additional onboarding time.
+    </p>
+  </div>
+
+  <!-- Reset button -->
+  <button class="sp-btn sp-btn--ghost">↩ Score Another Profile</button>
+
+</section>
+
+</body>
+</html>
