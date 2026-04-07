@@ -211,7 +211,13 @@ export async function analyzeCV({ cv_text, source_url }) {
     // Always read job fields fresh — no caching for guest users
     const jobTitle       = stored.jobTitle       ?? '';
     const jobDescription = stored.jobDescription ?? '';
-    // jobLanguage intentionally unused for guest endpoint but read for completeness
+    const jobLanguage    = (stored.jobLanguage   ?? '').trim();
+
+    // Build language config — mirrors the same logic used in getOrCreateExtensionJob()
+    const hasLanguage = jobLanguage.length > 0;
+    const languageConfig = hasLanguage
+        ? { languages_enabled: true,  language_weight: 10, languages: [{ name: jobLanguage, level: 'professional' }] }
+        : { languages_enabled: false, language_weight: 0,  languages: [] };
 
     if (!guest_token) {
         throw new Error('Session expired — could not get a guest token. Please refresh the extension and try again.');
@@ -227,6 +233,7 @@ export async function analyzeCV({ cv_text, source_url }) {
             job_data: {
                 title: jobTitle,
                 description: jobDescription,
+                ...languageConfig,
             },
             source_url,
             fingerprint,
