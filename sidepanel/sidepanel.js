@@ -249,10 +249,13 @@ function updateBannerForAuth(profile) {
     const pkg = profile.package ?? profile.subscription ?? profile.plan ?? {};
 
     // Try every field name the API might use for the credit limit.
-    // custom_total_ai_limit is checked FIRST — it is the user-level override (e.g. 500).
+    // effective_total_ai_limit is checked FIRST — it is the computed total including
+    // base package credits + purchased top-ups and is the most accurate source.
+    // custom_total_ai_limit is the user-level override (e.g. 500).
     // total_transaction_ai is the package-level base (e.g. 250).
     // NOTE: default is null (not 0) so we can distinguish "field not found" from "genuinely zero"
     const totalCredits =
+        profile.effective_total_ai_limit ??
         profile.custom_total_ai_limit  ??
         pkg.credits_ai_cv_analysis     ??
         pkg.cv_analysis_credits        ??
