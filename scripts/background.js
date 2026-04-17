@@ -12,7 +12,7 @@
 
 'use strict';
 
-import { generateFingerprint, initGuestSession, analyzeCV, login, getUserProfile, logout, analyzeCVAuth } from './api.js';
+import { generateFingerprint, initGuestSession, analyzeCV, login, getUserProfile, logout, analyzeCVAuth, getActiveJobs } from './api.js';
 
 // ---------------------------------------------------------------------------
 // In-memory scratchpad — cleared on tab close
@@ -478,6 +478,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (action === 'GET_USER_PROFILE') {
         getUserProfile()
             .then(profile => sendResponse({ success: true, data: profile }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        return true;
+    }
+
+    // ── Fetch active jobs for authenticated user ──────────────────────────────
+    if (action === 'GET_ACTIVE_JOBS') {
+        getActiveJobs()
+            .then(jobs => sendResponse({ success: true, data: jobs }))
             .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }

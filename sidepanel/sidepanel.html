@@ -83,10 +83,24 @@
                 <span class="sp-saved-badge" id="savedBadge" hidden data-i18n="saved">Saved ✓</span>
             </div>
 
-            <div class="sp-field">
-                <label for="jobTitleInput" class="sp-label" data-i18n="jobTitleLabel">Job Title</label>
+
+            <div class="sp-field" style="position:relative;">
+                <div class="sp-label-row">
+                    <label for="jobTitleInput" class="sp-label" data-i18n="jobTitleLabel">Job Title</label>
+                    <!-- Inline saved-jobs trigger — hidden until auth user has jobs -->
+                    <button type="button" class="sp-jobs-trigger" id="jobHistoryTrigger" hidden
+                        title="Load a saved job" aria-label="Load saved job" aria-expanded="false">
+                        <span class="sp-jobs-trigger-label">Saved Jobs</span>
+                        <svg class="sp-jobs-chevron" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </button>
+                </div>
                 <input type="text" id="jobTitleInput" class="sp-input" data-i18n-placeholder="jobTitlePlaceholder"
                     placeholder="e.g. Senior Frontend Engineer" autocomplete="off" spellcheck="false" />
+                <!-- Custom floating jobs list -->
+                <div class="sp-jobs-dropdown" id="jobHistoryDropdown" hidden role="listbox"></div>
             </div>
 
             <div class="sp-field">

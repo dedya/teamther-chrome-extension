@@ -379,11 +379,132 @@ textarea {
     gap: 4px;
 }
 
+/* Label row — label on left, inline action on right */
+.sp-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
 .sp-label {
     font-size: 13px;
     font-weight: 700;
     color: var(--text);
 }
+
+/* ── Inline "Saved Jobs" trigger ─────────────────────────── */
+.sp-jobs-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #f0fdf4;
+    border: 1px solid rgba(22,163,74,.25);
+    border-radius: 99px;
+    padding: 2px 8px 2px 7px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--green-darker);
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition), transform 80ms;
+    white-space: nowrap;
+    font-family: var(--font);
+    flex-shrink: 0;
+    letter-spacing: .1px;
+    line-height: 1;
+}
+
+.sp-jobs-trigger:hover {
+    background: #dcfce7;
+    border-color: var(--green);
+}
+
+.sp-jobs-trigger:active { transform: scale(.96); }
+
+.sp-jobs-trigger-label {
+    font-size: 10.5px;
+}
+
+.sp-jobs-chevron {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    transition: transform 180ms ease;
+}
+
+/* Rotate chevron when dropdown is open */
+.sp-jobs-trigger[aria-expanded="true"] .sp-jobs-chevron {
+    transform: rotate(180deg);
+}
+
+/* ── Floating jobs dropdown panel ────────────────────────── */
+.sp-jobs-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 150;
+    background: #ffffff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.06);
+    overflow: hidden;
+    animation: jobsDropIn 160ms cubic-bezier(.4, 0, .2, 1) both;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+@keyframes jobsDropIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Individual job item */
+.sp-jobs-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 120ms ease;
+    border-bottom: 1px solid #f1f5f9;
+    line-height: 1.3;
+    user-select: none;
+}
+
+.sp-jobs-item:last-child { border-bottom: none; }
+
+.sp-jobs-item:hover { background: #f0fdf4; }
+
+.sp-jobs-item:active { background: #dcfce7; }
+
+.sp-jobs-item-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    opacity: .75;
+}
+
+.sp-jobs-item-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+/* Empty-state item (no jobs found) */
+.sp-jobs-item--empty {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 12px;
+    cursor: default;
+    pointer-events: none;
+}
+
+.sp-jobs-item--empty:hover { background: transparent; }
 
 .sp-input,
 .sp-textarea {
@@ -397,6 +518,12 @@ textarea {
     transition: border-color var(--transition), box-shadow var(--transition);
     resize: vertical;
     outline: none;
+}
+
+/* Ensure native dropdown arrow is visible on select elements */
+select.sp-input {
+    appearance: auto;
+    cursor: pointer;
 }
 
 .sp-input:focus,

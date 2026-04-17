@@ -125,6 +125,8 @@ const els = {
     bannerPackage: $('bannerPackage'),
     upgradeBtn: $('upgradeBtn'),
     // Job context
+    jobHistoryTrigger: $('jobHistoryTrigger'),
+    jobHistoryDropdown: $('jobHistoryDropdown'),
     jobTitleInput: $('jobTitleInput'),
     jobDescInput: $('jobDescInput'),
     jobLanguageInput: $('jobLanguageInput'),
@@ -326,6 +328,107 @@ async function loadJobContext() {
     if (stored.jobTitle) els.jobTitleInput.value = stored.jobTitle;
     if (stored.jobDescription) els.jobDescInput.value = stored.jobDescription;
     if (stored.jobLanguage) els.jobLanguageInput.value = stored.jobLanguage;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────-
+// 7b. Active Jobs — Inline History Trigger (Auth users only)
+// ──────────────────────────────────────────────────────────────────────────────-
+
+/**
+ * Loads active jobs from the API and builds the custom inline history dropdown.
+ * - Shows the "Saved Jobs" trigger button in the Job Title label row.
+ * - Clicking the trigger opens/closes a floating list below the Job Title input.
+ * - Selecting a job auto-fills jobTitleInput, jobDescInput, jobLanguageInput.
+ * - The manual fields always remain visible (they are the fallback / editable state).
+ *
+ * Called by applyAuthUI() — NEVER called for guest users.
+ */
+async function loadActiveJobsDropdown() {
+    let jobs = [];
+    try {
+        const resp = await chrome.runtime.sendMessage({ action: 'GET_ACTIVE_JOBS' });
+        console.warn('[Teamther.ai] GET_ACTIVE_JOBS response:', JSON.stringify(resp)?.substring(0, 800));
+        if (resp?.success && Array.isArray(resp.data)) {
+            jobs = resp.data;
+            console.warn('[Teamther.ai] loadActiveJobsDropdown: received', jobs.length, 'job(s)');
+        } else {
+            console.warn('[Teamther.ai] loadActiveJobsDropdown: unexpected resp. success:', resp?.success, '| data type:', Array.isArray(resp?.data) ? 'array' : typeof resp?.data);
+        }
+    } catch (err) {
+        console.warn('[Teamther.ai] loadActiveJobsDropdown: message failed:', err.message);
+    }
+
+    const trigger  = els.jobHistoryTrigger;
+    const dropdown = els.jobHistoryDropdown;
+
+    // ── Build the list ────────────────────────────────────────────────────────
+    dropdown.innerHTML = '';
+
+    if (jobs.length === 0) {
+        // No jobs — show an empty-state row but still show the trigger
+        const empty = document.createElement('div');
+        empty.className = 'sp-jobs-item sp-jobs-item--empty';
+        empty.textContent = 'No active jobs found';
+        dropdown.appendChild(empty);
+    } else {
+        jobs.forEach(job => {
+            const item = document.createElement('div');
+            item.className = 'sp-jobs-item';
+            item.setAttribute('role', 'option');
+            item.setAttribute('tabindex', '0');
+            item.innerHTML = `
+                <span class="sp-jobs-item-icon">💼</span>
+                <span class="sp-jobs-item-title">${job.title ?? 'Untitled Job'}</span>
+            `;
+
+            const selectJob = () => {
+                // Fill the manual input fields
+                els.jobTitleInput.value    = job.title       ?? '';
+                els.jobDescInput.value     = job.description ?? '';
+                els.jobLanguageInput.value = (job.languages && job.languages[0]?.name) ?? '';
+                // Persist
+                saveJobContext();
+                // Close the dropdown
+                closeJobsDropdown();
+            };
+
+            item.addEventListener('click', selectJob);
+            item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectJob(); } });
+            dropdown.appendChild(item);
+        });
+    }
+
+    // ── Show trigger button ───────────────────────────────────────────────────
+    trigger.hidden = false;
+
+    // ── Wire toggle (idempotent — clone to clear old listeners) ──────────────
+    const freshTrigger = trigger.cloneNode(true);
+    trigger.parentNode.replaceChild(freshTrigger, trigger);
+    els.jobHistoryTrigger = freshTrigger;
+
+    freshTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = !dropdown.hidden;
+        if (isOpen) {
+            closeJobsDropdown();
+        } else {
+            openJobsDropdown();
+        }
+    });
+}
+
+function openJobsDropdown() {
+    const trigger  = els.jobHistoryTrigger;
+    const dropdown = els.jobHistoryDropdown;
+    dropdown.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+}
+
+function closeJobsDropdown() {
+    const trigger  = els.jobHistoryTrigger;
+    const dropdown = els.jobHistoryDropdown;
+    dropdown.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
 }
 
 function saveJobContext() {
@@ -939,6 +1042,8 @@ function applyAuthUI(profile) {
     els.loginBtn.hidden = true;
     els.logoutBtn.hidden = false;
     updateBannerForAuth(profile);
+    // Load active jobs dropdown for authenticated users
+    loadActiveJobsDropdown();
 }
 
 /**
@@ -947,6 +1052,10 @@ function applyAuthUI(profile) {
 function applyGuestUI() {
     els.loginBtn.hidden = false;
     els.logoutBtn.hidden = true;
+
+    // Hide the inline jobs trigger and close any open dropdown
+    if (els.jobHistoryTrigger) els.jobHistoryTrigger.hidden = true;
+    if (els.jobHistoryDropdown) els.jobHistoryDropdown.hidden = true;
 
     // Reset banner to guest scan display
     els.guestScanText.hidden = false;
@@ -1037,6 +1146,17 @@ async function init() {
     els.jobTitleInput.addEventListener('blur', () => {
         if (els.jobTitleInput.value.trim() || els.jobDescInput.value.trim()) {
             saveJobContext();
+        }
+    });
+    // Close the jobs history dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const trigger  = els.jobHistoryTrigger;
+        const dropdown = els.jobHistoryDropdown;
+        if (!trigger || !dropdown) return;
+        if (dropdown.hidden) return;
+        // Close if the click is outside both the trigger and the dropdown panel
+        if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+            closeJobsDropdown();
         }
     });
 }

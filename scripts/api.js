@@ -6,6 +6,7 @@
 //   generateFingerprint()   → string  (SHA-256, cached in storage)
 //   initGuestSession()      → { guest_token, remaining_credits }
 //   analyzeCV(payload)      → API result object
+//   getActiveJobs()         → array of job objects (authenticated)
 // =============================================================================
 
 'use strict';
@@ -717,4 +718,63 @@ export async function analyzeCVAuth({ cv_text, source_url, jobTitle, jobDescript
         credits_remaining: data.credits_remaining      ?? null,
         cv_upload_id:      data.cv_upload_id           ?? null,
     };
+}
+
+// ---------------------------------------------------------------------------
+// Jobs — Fetch Active Jobs (Authenticated)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /jobs/
+ * Returns the list of active jobs belonging to the authenticated user.
+ * Each job has at least: id, title, description, languages
+ *
+ * Handles multiple API response shapes:
+ *   - Bare array:              [ {...}, {...} ]
+ *   - DRF paginated:           { count, results: [ {...} ] }
+ *   - Wrapped:                 { data: [ {...} ] }
+ *   - Wrapped + paginated:     { data: { results: [...] } }
+ *
+ * Never throws — returns an empty array [] on any error so the caller
+ * never needs to handle exceptions.
+ *
+ * @returns {Promise<object[]>} array of job objects
+ */
+export async function getActiveJobs() {
+    // Endpoints to try in order
+    const ENDPOINTS = ['/jobs/', '/ext/jobs/', '/jobs/list/'];
+
+    for (const endpoint of ENDPOINTS) {
+        try {
+            const rawData = await fetchWithAuth(endpoint);
+
+            // Log the full raw response so we can see the exact shape
+            console.warn('[Teamther.ai] getActiveJobs() raw response from', endpoint, ':', JSON.stringify(rawData).substring(0, 500));
+
+            // Unwrap all known response shapes
+            let jobs = rawData;
+
+            // Shape: { data: ... }
+            if (jobs && !Array.isArray(jobs) && jobs.data !== undefined) {
+                jobs = jobs.data;
+            }
+
+            // Shape: { results: [...] } (DRF pagination)
+            if (jobs && !Array.isArray(jobs) && Array.isArray(jobs.results)) {
+                jobs = jobs.results;
+            }
+
+            if (Array.isArray(jobs)) {
+                console.warn('[Teamther.ai] getActiveJobs() resolved', jobs.length, 'job(s) from', endpoint);
+                return jobs;
+            }
+
+            console.warn('[Teamther.ai] getActiveJobs(): unexpected shape from', endpoint, '— trying next endpoint');
+        } catch (err) {
+            console.warn('[Teamther.ai] getActiveJobs()', endpoint, 'failed:', err.message, '— trying next');
+        }
+    }
+
+    console.warn('[Teamther.ai] getActiveJobs(): all endpoints failed, returning []');
+    return [];
 }
