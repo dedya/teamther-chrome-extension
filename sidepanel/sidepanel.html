@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teamther.ai Recruiter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="sidepanel.css" />
+    <!-- pdf.js — bundled locally (MV3 CSP does not allow remote scripts) -->
+    <script src="../lib/pdf.min.js"></script>
+</head>
+
+<body>
+
+    <!-- ══════════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════════ -->
+    <header class="sp-header">
+
+        <!-- Left: logo + brand text -->
+        <a href="https://app.teamther.ai" target="_blank" class="sp-logo-link" id="logoLink">
+            <img src="../logo.jpg" alt="Teamther.ai logo" class="sp-logo" id="logoImg" />
+            <div class="sp-brand">
+                <span class="sp-brand-name">Teamther.ai</span>
+                <span class="sp-brand-sub">AI Recruiter</span>
+            </div>
+        </a>
+
+        <!-- Right: lang toggle only -->
+        <div class="sp-header-right">
+            <div class="sp-lang-toggle" id="langToggle" role="switch" aria-label="Language toggle"
+                title="Switch language">
+                <span class="sp-lang-option" id="langEN">EN</span>
+                <span class="sp-lang-divider">|</span>
+                <span class="sp-lang-option" id="langFR">FR</span>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- ══════════════════════════════════════════════════
+       GUEST BANNER
+  ══════════════════════════════════════════════════ -->
+    <div class="sp-banner" id="guestBanner">
+        <div class="sp-banner-inner">
+            <div class="sp-credits-pill">
+                <span class="sp-banner-icon" id="bannerIcon">
+                    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" height="18px" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M0 3a2 2 0 0 1 2-2h13.5a.5.5 0 0 1 0 1H15v2a1 1 0 0 1 1 1v8.5a1.5 1.5 0 0 1-1.5 1.5h-12A2.5 2.5 0 0 1 0 12.5zm1 1.732V12.5A1.5 1.5 0 0 0 2.5 14h12a.5.5 0 0 0 .5-.5V5H2a1.99 1.99 0 0 1-1-.268M1 3a1 1 0 0 0 1 1h12V2H2a1 1 0 0 0-1 1"/></svg>
+                </span>
+                <!-- Guest: scan count -->
+                <span id="guestScanText">
+                    <span class="sp-scan-count" id="scanCountDisplay">5</span>
+                    <span data-i18n="scansLeft">&nbsp;/ 5 Free Scans Left</span>
+                </span>
+                <!-- Auth: package name (hidden until logged in) -->
+                <span class="sp-banner-package" id="bannerPackage" hidden></span>
+            </div>
+            <!-- Auth buttons — inline with credits row -->
+            <button class="sp-banner-btn sp-banner-btn--login" id="loginBtn" data-i18n="loginBtn">Login</button>
+            <a href="https://app.teamther.ai/packages" target="_blank" class="sp-banner-btn sp-banner-btn--upgrade" id="upgradeBtn" data-i18n="upgrade">Upgrade</a>
+            <button class="sp-banner-btn sp-banner-btn--logout" id="logoutBtn" hidden data-i18n="logoutBtn">Logout</button>
+        </div>
+        <!-- Progress bar -->
+        <div class="sp-scan-bar">
+            <div class="sp-scan-bar-fill" id="scanBarFill"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+       INLINE ERROR MESSAGE — between banner and main
+  ══════════════════════════════════════════════════ -->
+    <div class="sp-error-msg sp-error-msg--global" id="errorMsg" hidden></div>
+
+    <!-- ══════════════════════════════════════════════════
+       MAIN SCROLL AREA
+  ══════════════════════════════════════════════════ -->
+    <main class="sp-main" id="spMain">
+
+        <!-- Job Context Card -->
+        <section class="sp-card" id="jobContextCard">
+            <div class="sp-card-header">
+                <span class="sp-saved-badge" id="savedBadge" hidden data-i18n="saved">Saved ✓</span>
+            </div>
+
+
+            <div class="sp-field" style="position:relative;">
+                <div class="sp-label-row">
+                    <div class="sp-card-title-row">
+                        <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20px" width="20px" color="#16a34a" xmlns="http://www.w3.org/2000/svg"><path d="M20 5h-8.586L9.707 3.293A.997.997 0 0 0 9 3H4c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V7c0-1.103-.897-2-2-2zm-5 9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 4c0-2.206 1.794-4 4-4s4 1.794 4 4H6z"></path></svg>
+                        <label for="jobTitleInput" class="sp-label" data-i18n="jobTitleLabel">Job Title</label>
+                    </div>
+                    <!-- Inline saved-jobs trigger — hidden until auth user has jobs -->
+                    <button type="button" class="sp-jobs-trigger" id="jobHistoryTrigger" hidden
+                        title="Load a saved job" aria-label="Load saved job" aria-expanded="false">
+                        <span class="sp-jobs-trigger-label">Saved Jobs</span>
+                        <svg class="sp-jobs-chevron" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </button>
+                </div>
+                <input type="text" id="jobTitleInput" class="sp-input" data-i18n-placeholder="jobTitlePlaceholder"
+                    placeholder="e.g. Senior Frontend Engineer" autocomplete="off" spellcheck="false" />
+                <!-- Custom floating jobs list -->
+                <div class="sp-jobs-dropdown" id="jobHistoryDropdown" hidden role="listbox"></div>
+            </div>
+
+            <div class="sp-field">
+                <label for="jobDescInput" class="sp-label" data-i18n="jobDescLabel">Job Description</label>
+                <textarea id="jobDescInput" class="sp-textarea" rows="6" data-i18n-placeholder="jobDescPlaceholder"
+                    placeholder="Paste the job description here…" spellcheck="false"></textarea>
+            </div>
+
+            <div class="sp-field">
+                <label for="jobLanguageInput" class="sp-label" data-i18n="requiredLanguage">Required Language <span style="opacity:0.6;font-weight:400">(Optional)</span></label>
+                <input type="text" id="jobLanguageInput" class="sp-input"
+                    placeholder="e.g. English, French, Arabic" autocomplete="off" spellcheck="false" />
+            </div>
+
+            <!-- resetBtn + saveJobBtn in same flex row -->
+            <div class="sp-job-action-row">
+                <button class="sp-btn sp-btn--ghost" id="resetBtn" hidden>
+                    <span data-i18n="scoreAnother">↩ Score Another Profile</span>
+                </button>
+                <button class="sp-btn sp-btn--secondary" id="saveJobBtn">
+                    <span class="sp-btn-icon">💾</span>
+                    <span data-i18n="saveJob">Save Job</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Action Button -->
+        <div class="sp-action-area">
+            <button class="sp-btn sp-btn--primary" id="scoreBtn">
+                <span id="scoreBtnLabel" data-i18n="scoreBtn">Score Profile on Screen</span>
+            </button>
+
+            <!-- OR divider -->
+            <div class="sp-or-divider">
+                <span class="sp-or-line"></span>
+                <span class="sp-or-text">OR</span>
+                <span class="sp-or-line"></span>
+            </div>
+
+            <!-- PDF Upload — styled as a secondary action -->
+            <label class="sp-btn sp-btn--pdf" id="pdfUploadLabel" for="pdfFileInput">
+                <!-- Change 6: PDF SVG icon -->
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 384 512" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg"><path d="M320 464c8.8 0 16-7.2 16-16V160H256c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320zM0 64C0 28.7 28.7 0 64 0H229.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+                <!-- Keep the id so JS can still update the icon element — now it's a hidden span -->
+                <span id="pdfBtnIcon" hidden></span>
+                <span id="pdfBtnLabel" data-i18n="uploadPdf">Upload PDF Resume</span>
+            </label>
+            <!-- Hidden file input — only accepts PDFs -->
+            <input type="file" id="pdfFileInput" accept="application/pdf" hidden />
+        </div>
+
+        <!-- ─── Results Container (hidden until a score is returned) ─── -->
+        <section class="sp-results" id="resultsContainer" hidden>
+
+            <!-- Change 7: Candidate name wrapped in white card -->
+            <div class="sp-candidate-card">
+                <div class="sp-results-candidate" id="candidateName"></div>
+            </div>
+
+            <!-- ── Unified Score + Details Card ── -->
+            <div class="sp-score-details-card">
+                <!-- Card Header -->
+                <div class="sp-score-details-header">
+                    <span class="sp-score-details-title">SCORE &amp; DÉTAILS</span>
+                    <span class="sp-score-details-arrow">↓</span>
+                </div>
+
+                <!-- Body: Ring on left, Bars on right -->
+                <div class="sp-score-details-body">
+                    <!-- Left: Ring -->
+                    <div class="sp-score-ring-col">
+                        <div class="sp-score-ring-wrap">
+                            <svg class="sp-score-ring" viewBox="0 0 120 120" aria-hidden="true">
+                                <circle class="sp-ring-bg" cx="60" cy="60" r="50" />
+                                <circle class="sp-ring-fill" cx="60" cy="60" r="50" id="ringFill" />
+                            </svg>
+                            <div class="sp-score-inner">
+                                <span class="sp-score-number" id="scoreNumber">0</span>
+                            </div>
+                        </div>
+                        <!-- Tier badge below ring -->
+                        <span class="sp-rec-badge" id="recBadge">—</span>
+                        <!-- View Profile link -->
+                        <a class="sp-source-link" id="sourceLink" target="_blank" data-i18n="viewProfile">View Profile →</a>
+                    </div>
+
+                    <!-- Right: Sub-score bars -->
+                    <div class="sp-subscores-col" id="subscoresCard">
+                        <div class="sp-subscore-row" id="subExp">
+                            <span class="sp-subscore-label">Exp. <span class="sp-subscore-key">(E)</span></span>
+                            <div class="sp-subscore-bar-wrap">
+                                <div class="sp-subscore-bar sp-subscore-bar--exp" id="barExp"></div>
+                            </div>
+                            <span class="sp-subscore-val" id="valExp">0</span>
+                        </div>
+                        <div class="sp-subscore-row" id="subComp">
+                            <span class="sp-subscore-label">Comp. <span class="sp-subscore-key">(S)</span></span>
+                            <div class="sp-subscore-bar-wrap">
+                                <div class="sp-subscore-bar sp-subscore-bar--comp" id="barComp"></div>
+                            </div>
+                            <span class="sp-subscore-val" id="valComp">0</span>
+                        </div>
+                        <div class="sp-subscore-row" id="subEdu">
+                            <span class="sp-subscore-label">Édu. <span class="sp-subscore-key">(D)</span></span>
+                            <div class="sp-subscore-bar-wrap">
+                                <div class="sp-subscore-bar sp-subscore-bar--edu" id="barEdu"></div>
+                            </div>
+                            <span class="sp-subscore-val" id="valEdu">0</span>
+                        </div>
+                        <div class="sp-subscore-row" id="subLan">
+                            <span class="sp-subscore-label">Lan. <span class="sp-subscore-key">(L)</span></span>
+                            <div class="sp-subscore-bar-wrap">
+                                <div class="sp-subscore-bar sp-subscore-bar--lan" id="barLan"></div>
+                            </div>
+                            <span class="sp-subscore-val" id="valLan">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Change 4: Overall Verdict THIRD -->
+            <div class="sp-reasoning-card" id="reasoningCard" hidden>
+                <h3 class="sp-list-title">
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span data-i18n="overallVerdict">Overall Verdict</span>
+                </h3>
+                <p class="sp-reasoning-text" id="reasoningText"></p>
+            </div>
+
+            <!-- Change 4: Strengths FOURTH -->
+            <div class="sp-list-card sp-list-card--strengths">
+                <h3 class="sp-list-title">
+                    <!-- Change 6: FaRegSquareCheck SVG -->
+                    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg"><path d="M64 80c-8.8 0-16 7.2-16 16V416c0 8.8 7.2 16 16 16H384c8.8 0 16-7.2 16-16V96c0-8.8-7.2-16-16-16H64zM0 96C0 60.7 28.7 32 64 32H384c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM337 209L209 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L303 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+                    <span data-i18n="strengths">Strengths</span>
+                </h3>
+                <ul class="sp-list" id="strengthsList"></ul>
+            </div>
+
+            <!-- Change 4: Weaknesses FIFTH -->
+            <div class="sp-list-card sp-list-card--weaknesses">
+                <h3 class="sp-list-title">
+                    <!-- Change 6: LuMessageSquareWarning SVG -->
+                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="16px" width="16px" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v4"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 15h.01"/></svg>
+                    <span data-i18n="weaknesses">Weaknesses</span>
+                </h3>
+                <ul class="sp-list" id="weaknessesList"></ul>
+            </div>
+
+        </section>
+        <!-- /results -->
+
+    </main>
+
+    <!-- ══════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════ -->
+    <footer class="sp-footer">
+        <span data-i18n="footerPowered">Powered by</span>
+        <a href="https://app.teamther.ai" target="_blank" class="sp-footer-brand">Teamther.ai</a>
+    </footer>
+
+    <!-- ══════════════════════════════════════════════════
+       LOGIN VIEW OVERLAY
+  ══════════════════════════════════════════════════ -->
+    <div class="sp-login-view" id="loginView" hidden>
+        <div class="sp-login-card">
+            <!-- Logo + title -->
+            <div class="sp-login-header">
+                <img src="../logo.jpg" alt="Teamther.ai" class="sp-login-logo" />
+                <h2 class="sp-login-title">Sign in to Teamther.ai</h2>
+                <p class="sp-login-sub">Access your account &amp; credits</p>
+            </div>
+
+            <div class="sp-field">
+                <label class="sp-label" for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="sp-input" placeholder="you@company.com"
+                    autocomplete="email" />
+            </div>
+
+            <div class="sp-field">
+                <label class="sp-label" for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="sp-input" placeholder="••••••••"
+                    autocomplete="current-password" />
+            </div>
+
+            <!-- Inline error -->
+            <div class="sp-error-msg" id="loginError" hidden></div>
+
+            <button class="sp-btn sp-btn--primary" id="signInBtn">
+                <span id="signInBtnIcon">🔐</span>
+                <span id="signInBtnLabel">Sign In</span>
+            </button>
+
+            <button class="sp-btn sp-btn--ghost" id="backBtn">← Back</button>
+        </div>
+    </div>
+
+    <script src="sidepanel.js"></script>
+
+</body>
+
+</html>

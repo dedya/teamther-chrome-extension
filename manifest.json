@@ -1,0 +1,69 @@
+{
+    "manifest_version": 3,
+    "name": "Teamther.ai Recruiter",
+    "short_name": "Teamther.ai",
+    "version": "1.0.0",
+    "description": "AI-powered LinkedIn & Indeed profile scoring against job descriptions. Instantly assess candidate fit with your hiring criteria.",
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "action": {
+        "default_title": "Teamther.ai Recruiter",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "background": {
+        "service_worker": "scripts/background.js",
+        "type": "module"
+    },
+    "side_panel": {
+        "default_path": "sidepanel/sidepanel.html"
+    },
+    "permissions": [
+        "sidePanel",
+        "storage",
+        "activeTab",
+        "scripting",
+        "tabs"
+    ],
+    "host_permissions": [
+        "https://www.linkedin.com/*",
+        "https://linkedin.com/*",
+        "https://www.indeed.com/*",
+        "https://indeed.com/*",
+        "https://ca.indeed.com/*",
+        "https://app.teamther.ai/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.linkedin.com/*",
+                "https://linkedin.com/*",
+                "https://www.indeed.com/*",
+                "https://indeed.com/*",
+                "https://ca.indeed.com/*"
+            ],
+            "js": [
+                "scripts/content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "logo.jpg",
+                "icons/*",
+                "lib/*.js"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
