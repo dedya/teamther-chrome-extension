@@ -24,7 +24,7 @@ const TRANSLATIONS = {
         loginBtn: 'Login',
         logoutBtn: 'Logout',
         registerNow: 'Register Now',
-        scansLeft: ' / 5 Free Scans Left',
+        scansLeft: ' / 10 Free Scans Left',
         upgrade: 'Upgrade',
         activeJobTitle: 'Active Job Context',
         saved: 'Saved ✓',
@@ -63,7 +63,7 @@ const TRANSLATIONS = {
         loginBtn: 'Connexion',
         logoutBtn: 'Déconnexion',
         registerNow: 'S\'inscrire',
-        scansLeft: ' / 5 Analyses Gratuites',
+        scansLeft: ' / 10 Analyses Gratuites',
         upgrade: 'Passer Pro',
         activeJobTitle: 'Contexte du Poste',
         saved: 'Sauvegardé ✓',
@@ -225,7 +225,7 @@ function toggleLanguage() {
 // 6. Scan Badge & Progress Bar
 // ─────────────────────────────────────────────────────────────────────────────
 
-const MAX_SCANS = 5;
+const MAX_SCANS = 10;
 
 /**
  * Updates the guest scan badge and progress bar.

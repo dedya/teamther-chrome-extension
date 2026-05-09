@@ -122,7 +122,7 @@ function extractRemainingCredits(profile) {
 // 3b. Scan Quota Gate
 // ---------------------------------------------------------------------------
 
-const MAX_FREE_SCANS = 5;
+const MAX_FREE_SCANS = 10;
 const UPGRADE_URL = 'https://app.teamther.ai/packages?lang=en';
 
 /**
