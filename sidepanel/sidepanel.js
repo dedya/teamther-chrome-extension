@@ -915,6 +915,8 @@ async function handlePdfUpload(event) {
                 els.scanCountDisplay.textContent = '0';
                 chrome.storage.local.set({ credits_exhausted: true });
                 showError(t('errQuota'));
+            } else if (response?.error === 'CREDITS_EXHAUSTED' || response?.error === 'credits_exhausted') {
+                showError('✨ You\'ve used all your plan credits. Visit Teamther.ai to upgrade your package.');
             } else if (response?.error === 'SESSION_EXPIRED' || response?.error?.includes('log in again')) {
                 showError('⚠ Authentication error. Please log out and log back in.');
             } else {
@@ -1151,6 +1153,14 @@ async function init() {
                     if (scanTextEl) scanTextEl.innerHTML = `<span style="font-size:0.85em;opacity:0.9">${t('creditsUsed')}</span>`;
                 } else {
                     updateScanBadge(statusResp.data.remaining_credits);
+
+                    // Always fetch fresh credits from backend on load
+                    try {
+                        const freshSession = await chrome.runtime.sendMessage({ action: 'INIT_SESSION' });
+                        if (freshSession?.success && freshSession?.data?.remaining_credits !== undefined) {
+                            updateScanBadge(freshSession.data.remaining_credits);
+                        }
+                    } catch (_) {}
                 }
                 if (!statusResp.data.hasToken) {
                     chrome.runtime.sendMessage({ action: 'INIT_SESSION' });
