@@ -382,10 +382,7 @@ textarea {
     color: #fca5a5;
 }
 
-/* upgradeBtn is now in the header; keeping this rule as a no-op fallback */
-.sp-upgrade-btn {
-    display: none;
-}
+
 
 /* Banner: package badge (shown when logged in) */
 .sp-banner-package {
@@ -416,7 +413,7 @@ textarea {
     height: 100%;
     background: #ffffff;
     border-radius: 99px;
-    width: 100%;
+    width: 0;
     transition: width 600ms cubic-bezier(.4, 0, .2, 1), background 400ms;
 }
 
@@ -757,12 +754,13 @@ select.sp-input {
     box-shadow: 0 4px 12px rgba(59, 130, 246, .40);
 }
 
-/* ── Job action row — resetBtn + saveJobBtn side by side ── */
+/* ── Job action row — resetBtn LEFT, saveJobBtn RIGHT ── */
 .sp-job-action-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    width: 100%;
 }
 
 /* Ghost inline — compact version of ghost for use inside the job card row */
@@ -817,14 +815,7 @@ select.sp-input {
     }
 }
 
-/* ── Job action row: resetBtn LEFT, saveJobBtn RIGHT ─────── */
-.sp-job-action-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-}
+
 
 /* Make ghost button fit inside the row without stretching full width */
 .sp-job-action-row .sp-btn--ghost {

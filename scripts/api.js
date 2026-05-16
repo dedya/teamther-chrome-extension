@@ -146,7 +146,7 @@ export async function initGuestSession() {
     const payload = data.data ?? data;
 
     const guest_token = payload.guest_token ?? payload.token ?? '';
-    let remaining_credits = payload.remaining_credits ?? payload.credits ?? 5;
+    let remaining_credits = payload.remaining_credits ?? payload.credits ?? 10;
 
     // ── Credits-exhausted flag ────────────────────────────────────────────────
     // Once a profile hits 0 credits, lock it permanently so refreshing the
@@ -268,9 +268,6 @@ export async function login(email, password) {
     // API response shape: { access, refresh, user } or { data: { access, refresh, user } }
     const payload = data.data ?? data;
 
-    // Log the full raw payload so you can check the field names in DevTools
-    console.warn('[Teamther.ai] login() RAW PAYLOAD:', JSON.stringify(payload));
-
     // THE API NESTS TOKENS UNDER payload.tokens — extract from there first
     const tokensObj = payload.tokens ?? {};
 
@@ -319,10 +316,6 @@ export async function login(email, password) {
         _loginPayload: payload,
     });
 
-    console.warn('[Teamther.ai] login(): tokens stored. access present:', !!access, '| refresh present:', !!refresh);
-
-    console.debug('[Teamther.ai] login(): stored tokens. access present:', !!access, '| raw payload keys:', Object.keys(payload).join(', '));
-
     return { access, refresh, user };
 }
 
@@ -352,7 +345,6 @@ async function tryRefreshAccessToken() {
 
     for (const ep of REFRESH_ENDPOINTS) {
         try {
-            console.debug(`[Teamther.ai] tryRefreshAccessToken: trying ${ep}`);
             const data = await apiFetch(ep, {
                 method: 'POST',
                 body: JSON.stringify({ refresh }),
@@ -360,12 +352,10 @@ async function tryRefreshAccessToken() {
             const payload = data.data ?? data;
             const newAccess = payload.access ?? payload.access_token ?? payload.token ?? '';
             if (newAccess) {
-                console.debug('[Teamther.ai] tryRefreshAccessToken: success via', ep);
                 await chrome.storage.local.set({ access: newAccess });
                 return newAccess;
             }
         } catch (err) {
-            console.debug(`[Teamther.ai] tryRefreshAccessToken: ${ep} failed:`, err.message);
             // Continue to next endpoint
         }
     }
@@ -399,15 +389,6 @@ export async function fetchWithAuth(endpoint, options = {}) {
     const allStorage = await chrome.storage.local.get(null);
     const loginPayload = allStorage._loginPayload ?? {};
 
-    // Dump ALL stored key names to diagnose token field mismatches
-    const storedKeys = Object.keys(allStorage);
-    console.debug('[Teamther.ai] fetchWithAuth', endpoint, '| stored keys:', storedKeys.join(', '));
-
-    // Auth keys actually present (non-empty)
-    const authKeys = ['access','access_token','token','refresh','refresh_token','isLoggedIn'];
-    const presentKeys = authKeys.filter(k => !!allStorage[k]);
-    console.debug('[Teamther.ai] fetchWithAuth | non-empty auth keys:', presentKeys.join(', ') || 'NONE');
-
     let bearerToken =
         allStorage.access         ||
         allStorage.access_token   ||
@@ -431,8 +412,6 @@ export async function fetchWithAuth(endpoint, options = {}) {
         bearerToken = refreshed;
     }
 
-    console.debug('[Teamther.ai] fetchWithAuth: using token (first 20 chars):', bearerToken.substring(0, 20) + '...');
-
     // ── First attempt with Bearer prefix ─────────────────────────────────────
     let firstErr;
     try {
@@ -446,7 +425,6 @@ export async function fetchWithAuth(endpoint, options = {}) {
     } catch (err) {
         if (err.status !== 401) throw err;
         firstErr = err;
-        console.debug('[Teamther.ai] fetchWithAuth: Bearer prefix got 401, trying "Token" prefix (DRF default)...');
     }
 
     // ── Second attempt with "Token" prefix (Django DRF TokenAuth) ─────────────
@@ -460,7 +438,6 @@ export async function fetchWithAuth(endpoint, options = {}) {
         });
     } catch (err) {
         if (err.status !== 401) throw err;
-        console.debug('[Teamther.ai] fetchWithAuth: "Token" prefix also got 401, trying token refresh...');
     }
 
     // ── Silent token refresh + retry ─────────────────────────────────────────
@@ -513,9 +490,6 @@ export async function fetchWithAuth(endpoint, options = {}) {
 export async function getUserProfile() {
     const rawData = await fetchWithAuth('/me/');
     const profile = rawData.data ?? rawData;
-
-    // Log so you can see the exact field names returned by the API
-    console.debug('[Teamther.ai] getUserProfile() raw profile:', JSON.stringify(profile));
 
     // Cache the updated user object so banner data survives service worker restarts
     await chrome.storage.local.set({ user: profile });
@@ -619,11 +593,9 @@ async function getOrCreateExtensionJob(jobTitle, jobDescription, jobLanguage) {
     const oldJobKeys = Object.keys(allStorage).filter(k => k.startsWith('extjob_') && k !== safeKey);
     if (oldJobKeys.length > 0) {
         await chrome.storage.local.remove(oldJobKeys);
-        console.warn('[Teamther.ai] Cleared old job cache keys:', oldJobKeys);
     }
 
     await chrome.storage.local.set({ [safeKey]: jobId });
-    console.warn('[Teamther.ai] Created extension job ID:', jobId, 'for title:', jobTitle, '| language:', langName || '(none)');
     return jobId;
 }
 
@@ -659,7 +631,6 @@ async function getOrCreateExtensionJob(jobTitle, jobDescription, jobLanguage) {
 export async function analyzeCVAuth({ cv_text, source_url, jobTitle, jobDescription, jobLanguage, candidateName }) {
     // Step 1 — Resolve the job ID dynamically (cache → API list → create new).
     const jobId = await getOrCreateExtensionJob(jobTitle, jobDescription, jobLanguage);
-    console.warn('[Teamther.ai] analyzeCVAuth: resolved job ID', jobId);
 
     // Step 2 — POST cv_text as JSON to the synchronous analyze endpoint.
     let rawResult;
@@ -700,8 +671,6 @@ export async function analyzeCVAuth({ cv_text, source_url, jobTitle, jobDescript
 
     const data      = result.data         ?? {};
     const analysis  = data.analysis       ?? {};
-
-    console.warn('[Teamther.ai] analyzeCVAuth: success. score:', analysis.score, '| credits_remaining:', data.credits_remaining);
 
     return {
         score:             analysis.score              ?? analysis.overall_score  ?? 0,
@@ -748,9 +717,6 @@ export async function getActiveJobs() {
         try {
             const rawData = await fetchWithAuth(endpoint);
 
-            // Log the full raw response so we can see the exact shape
-            console.warn('[Teamther.ai] getActiveJobs() raw response from', endpoint, ':', JSON.stringify(rawData).substring(0, 500));
-
             // Unwrap all known response shapes
             let jobs = rawData;
 
@@ -765,16 +731,12 @@ export async function getActiveJobs() {
             }
 
             if (Array.isArray(jobs)) {
-                console.warn('[Teamther.ai] getActiveJobs() resolved', jobs.length, 'job(s) from', endpoint);
                 return jobs;
             }
-
-            console.warn('[Teamther.ai] getActiveJobs(): unexpected shape from', endpoint, '— trying next endpoint');
         } catch (err) {
-            console.warn('[Teamther.ai] getActiveJobs()', endpoint, 'failed:', err.message, '— trying next');
+            // Try next endpoint
         }
     }
 
-    console.warn('[Teamther.ai] getActiveJobs(): all endpoints failed, returning []');
     return [];
 }

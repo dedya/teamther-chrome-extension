@@ -53,15 +53,15 @@
                 </span>
                 <!-- Guest: scan count -->
                 <span id="guestScanText">
-                    <span class="sp-scan-count" id="scanCountDisplay">5</span>
-                    <span data-i18n="scansLeft">&nbsp;/ 5 Free Scans Left</span>
+                    <span class="sp-scan-count" id="scanCountDisplay">10</span>
+                    <span data-i18n="scansLeft">&nbsp;/ 10 Free Scans Left</span>
                 </span>
                 <!-- Auth: package name (hidden until logged in) -->
                 <span class="sp-banner-package" id="bannerPackage" hidden></span>
             </div>
             <!-- Auth buttons — inline with credits row -->
             <button class="sp-banner-btn sp-banner-btn--login" id="loginBtn" data-i18n="loginBtn">Login</button>
-            <a href="https://app.teamther.ai/packages" target="_blank" class="sp-banner-btn sp-banner-btn--upgrade" id="upgradeBtn" data-i18n="upgrade">Upgrade</a>
+            <a href="https://app.teamther.ai/packages?lang=en" target="_blank" class="sp-banner-btn sp-banner-btn--upgrade" id="upgradeBtn" data-i18n="upgrade">Upgrade</a>
             <button class="sp-banner-btn sp-banner-btn--logout" id="logoutBtn" hidden data-i18n="logoutBtn">Logout</button>
         </div>
         <!-- Progress bar -->
@@ -96,7 +96,7 @@
                     <!-- Inline saved-jobs trigger — hidden until auth user has jobs -->
                     <button type="button" class="sp-jobs-trigger" id="jobHistoryTrigger" hidden
                         title="Load a saved job" aria-label="Load saved job" aria-expanded="false">
-                        <span class="sp-jobs-trigger-label">Saved Jobs</span>
+                        <span class="sp-jobs-trigger-label" data-i18n="savedJobs">Saved Jobs</span>
                         <svg class="sp-jobs-chevron" viewBox="0 0 16 16" aria-hidden="true">
                             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8"
                                 stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -116,9 +116,9 @@
             </div>
 
             <div class="sp-field">
-                <label for="jobLanguageInput" class="sp-label" data-i18n="requiredLanguage">Required Language <span style="opacity:0.6;font-weight:400">(Optional)</span></label>
+                <label for="jobLanguageInput" class="sp-label" data-i18n="requiredLanguage">Required Language <span style="opacity:0.6;font-weight:400" data-i18n="optional">(Optional)</span></label>
                 <input type="text" id="jobLanguageInput" class="sp-input"
-                    placeholder="e.g. English, French, Arabic" autocomplete="off" spellcheck="false" />
+                    placeholder="e.g. English, French, Arabic" data-i18n-placeholder="jobLanguagePlaceholder" autocomplete="off" spellcheck="false" />
             </div>
 
             <!-- resetBtn + saveJobBtn in same flex row -->
@@ -170,7 +170,7 @@
             <div class="sp-score-details-card">
                 <!-- Card Header -->
                 <div class="sp-score-details-header">
-                    <span class="sp-score-details-title">SCORE &amp; DÉTAILS</span>
+                    <span class="sp-score-details-title" data-i18n="scoreDetailsTitle">SCORE &amp; DETAILS</span>
                     <span class="sp-score-details-arrow">↓</span>
                 </div>
 
@@ -277,18 +277,18 @@
             <!-- Logo + title -->
             <div class="sp-login-header">
                 <img src="../logo.jpg" alt="Teamther.ai" class="sp-login-logo" />
-                <h2 class="sp-login-title">Sign in to Teamther.ai</h2>
-                <p class="sp-login-sub">Access your account &amp; credits</p>
+                <h2 class="sp-login-title" data-i18n="loginTitle">Sign in to Teamther.ai</h2>
+                <p class="sp-login-sub" data-i18n="loginSubtitle">Access your account &amp; credits</p>
             </div>
 
             <div class="sp-field">
-                <label class="sp-label" for="loginEmail">Email</label>
+                <label class="sp-label" for="loginEmail" data-i18n="emailLabel">Email</label>
                 <input type="email" id="loginEmail" class="sp-input" placeholder="you@company.com"
                     autocomplete="email" />
             </div>
 
             <div class="sp-field">
-                <label class="sp-label" for="loginPassword">Password</label>
+                <label class="sp-label" for="loginPassword" data-i18n="passwordLabel">Password</label>
                 <input type="password" id="loginPassword" class="sp-input" placeholder="••••••••"
                     autocomplete="current-password" />
             </div>
@@ -298,10 +298,10 @@
 
             <button class="sp-btn sp-btn--primary" id="signInBtn">
                 <span id="signInBtnIcon">🔐</span>
-                <span id="signInBtnLabel">Sign In</span>
+                <span id="signInBtnLabel" data-i18n="signIn">Sign In</span>
             </button>
 
-            <button class="sp-btn sp-btn--ghost" id="backBtn">← Back</button>
+            <button class="sp-btn sp-btn--ghost" id="backBtn" data-i18n="backBtn">← Back</button>
         </div>
     </div>
 

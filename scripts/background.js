@@ -123,31 +123,13 @@ function extractRemainingCredits(profile) {
 // ---------------------------------------------------------------------------
 
 const MAX_FREE_SCANS = 10;
-const UPGRADE_URL = 'https://app.teamther.ai/packages?lang=en';
 
 /**
- * Checks + increments the scan count.
- * Throws 'QUOTA_EXCEEDED' if the user is over the limit.
- * @param {number|null} activeTabId — if provided, redirected to upgrade page on quota hit
- * @returns {Promise<number>} remaining scans after increment
+ * Returns the upgrade URL with the user's current language setting.
  */
-async function enforceScanQuota(activeTabId = null) {
-    // Logged-in users have their own credits — skip the local guest quota gate entirely
-    const { isLoggedIn } = await chrome.storage.local.get('isLoggedIn');
-    if (isLoggedIn) return Infinity;
-
-    const { scan_count = 0 } = await chrome.storage.local.get('scan_count');
-
-    if (scan_count >= MAX_FREE_SCANS) {
-        if (activeTabId) {
-            await chrome.tabs.update(activeTabId, { url: UPGRADE_URL }).catch(() => { });
-        }
-        throw new Error('QUOTA_EXCEEDED');
-    }
-
-    const newCount = scan_count + 1;
-    await chrome.storage.local.set({ scan_count: newCount });
-    return MAX_FREE_SCANS - newCount;
+async function getUpgradeUrl() {
+    const { lang } = await chrome.storage.local.get('lang');
+    return `https://app.teamther.ai/packages?lang=${lang || 'en'}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -180,7 +162,7 @@ async function handleScoreCandidate(tabId, jobTitle, jobDescription, jobLanguage
             remainingScans = isLoggedIn ? Infinity : await (async () => {
                 const { scan_count = 0 } = await chrome.storage.local.get('scan_count');
                 if (scan_count >= MAX_FREE_SCANS) {
-                    await chrome.tabs.update(tabId, { url: UPGRADE_URL }).catch(() => {});
+                    await chrome.tabs.update(tabId, { url: await getUpgradeUrl() }).catch(() => {});
                     throw new Error('QUOTA_EXCEEDED');
                 }
                 const newCount = scan_count + 1;
@@ -207,7 +189,7 @@ async function handleScoreCandidate(tabId, jobTitle, jobDescription, jobLanguage
         } catch (err) {
             sendResponse({
                 success: false,
-                error: 'Could not communicate with the page. Try refreshing the LinkedIn/Indeed tab.'
+                error: 'ERR_SCRAPE_CONNECT'
             });
             return;
         }
@@ -221,7 +203,7 @@ async function handleScoreCandidate(tabId, jobTitle, jobDescription, jobLanguage
         }
 
         if (!scrapeResult?.success) {
-            sendResponse({ success: false, error: scrapeResult?.error || 'Could not extract profile. Please refresh the LinkedIn tab and try again.' });
+            sendResponse({ success: false, error: scrapeResult?.error || 'ERR_SCRAPE_FAILED' });
             return;
         }
 

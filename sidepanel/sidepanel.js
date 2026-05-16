@@ -58,6 +58,25 @@ const TRANSLATIONS = {
         recHire: '✅ Hire',
         recInterview: '🟡 Interview',
         recReject: '❌ Reject',
+        errCreditsExhausted: '✨ You\'ve used all your plan credits. Visit Teamther.ai to upgrade your package.',
+        errSessionExpired: '⚠ Authentication error. Please log out and log back in.',
+        errPdfTooLarge: '⚠ File size exceeds 5MB limit. Please upload a smaller file.',
+        errPdfExtract: '⚠ Could not extract text from this PDF. Please try a text-based PDF.',
+        errLoginEmpty: '⚠ Please enter your email and password.',
+        errScrape: '⚠ Could not communicate with the page. Try refreshing the LinkedIn/Indeed tab.',
+        errScrapeFailed: '⚠ Could not extract profile. Please refresh the LinkedIn tab and try again.',
+        signIn: 'Sign In',
+        signingIn: 'Signing in\u2026',
+        loginTitle: 'Sign in to Teamther.ai',
+        loginSubtitle: 'Access your account & credits',
+        emailLabel: 'Email',
+        passwordLabel: 'Password',
+        backBtn: '\u2190 Back',
+        noJobsFound: 'No active jobs found',
+        untitledJob: 'Untitled Job',
+        optional: '(Optional)',
+        jobLanguagePlaceholder: 'e.g. English, French, Arabic',
+        scoreDetailsTitle: 'SCORE & DETAILS',
     },
     fr: {
         loginBtn: 'Connexion',
@@ -97,6 +116,25 @@ const TRANSLATIONS = {
         recHire: '✅ Embaucher',
         recInterview: '🟡 Entretien',
         recReject: '❌ Rejeter',
+        errCreditsExhausted: '✨ Vous avez utilisé tous vos crédits. Visitez Teamther.ai pour mettre à niveau votre forfait.',
+        errSessionExpired: '⚠ Erreur d\'authentification. Veuillez vous déconnecter et vous reconnecter.',
+        errPdfTooLarge: '⚠ La taille du fichier dépasse la limite de 5 Mo. Veuillez télécharger un fichier plus petit.',
+        errPdfExtract: '⚠ Impossible d\'extraire le texte de ce PDF. Utilisez un PDF avec du texte sélectionnable.',
+        errLoginEmpty: '⚠ Veuillez entrer votre email et votre mot de passe.',
+        errScrape: '⚠ Impossible de communiquer avec la page. Essayez de rafraîchir l\'onglet LinkedIn/Indeed.',
+        errScrapeFailed: '⚠ Impossible d\'extraire le profil. Veuillez rafraîchir l\'onglet LinkedIn et réessayer.',
+        signIn: 'Se connecter',
+        signingIn: 'Connexion en cours\u2026',
+        loginTitle: 'Connectez-vous à Teamther.ai',
+        loginSubtitle: 'Accédez à votre compte et vos crédits',
+        emailLabel: 'Email',
+        passwordLabel: 'Mot de passe',
+        backBtn: '\u2190 Retour',
+        noJobsFound: 'Aucun poste actif trouvé',
+        untitledJob: 'Poste sans titre',
+        optional: '(Optionnel)',
+        jobLanguagePlaceholder: 'ex. Anglais, Français, Arabe',
+        scoreDetailsTitle: 'SCORE & DÉTAILS',
     }
 };
 
@@ -219,6 +257,10 @@ function toggleLanguage() {
         const label = trigger.querySelector('.sp-jobs-trigger-label');
         if (label) label.textContent = t('savedJobs');
     }
+    // Update upgrade link lang param
+    if (els.upgradeBtn) {
+        els.upgradeBtn.href = `https://app.teamther.ai/packages?lang=${currentLang}`;
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -232,7 +274,7 @@ const MAX_SCANS = 10;
  * When logged in, the progress bar reflects used/total credits instead.
  *
  * @param {number} remaining  — remaining scans (guest) or credits (auth)
- * @param {number} [total=5]  — total credits (auth only; defaults to MAX_SCANS)
+ * @param {number} [total=10]  — total credits (auth only; defaults to MAX_SCANS)
  */
 function updateScanBadge(remaining, total = MAX_SCANS) {
     const count = Math.max(0, remaining ?? 0);
@@ -269,9 +311,6 @@ function updateScanBadge(remaining, total = MAX_SCANS) {
  */
 function updateBannerForAuth(profile) {
     if (!profile) return;
-
-    // Log the raw profile so field names are visible in DevTools → Extensions → Service Worker
-    console.debug('[Teamther.ai] updateBannerForAuth profile:', JSON.stringify(profile));
 
     const pkg = profile.package ?? profile.subscription ?? profile.plan ?? {};
 
@@ -372,15 +411,11 @@ async function loadActiveJobsDropdown() {
     let jobs = [];
     try {
         const resp = await chrome.runtime.sendMessage({ action: 'GET_ACTIVE_JOBS' });
-        console.warn('[Teamther.ai] GET_ACTIVE_JOBS response:', JSON.stringify(resp)?.substring(0, 800));
         if (resp?.success && Array.isArray(resp.data)) {
             jobs = resp.data;
-            console.warn('[Teamther.ai] loadActiveJobsDropdown: received', jobs.length, 'job(s)');
-        } else {
-            console.warn('[Teamther.ai] loadActiveJobsDropdown: unexpected resp. success:', resp?.success, '| data type:', Array.isArray(resp?.data) ? 'array' : typeof resp?.data);
         }
     } catch (err) {
-        console.warn('[Teamther.ai] loadActiveJobsDropdown: message failed:', err.message);
+        // Could not load active jobs — proceed with empty list
     }
 
     const trigger  = els.jobHistoryTrigger;
@@ -393,7 +428,7 @@ async function loadActiveJobsDropdown() {
         // No jobs — show an empty-state row but still show the trigger
         const empty = document.createElement('div');
         empty.className = 'sp-jobs-item sp-jobs-item--empty';
-        empty.textContent = 'No active jobs found';
+        empty.textContent = t('noJobsFound');
         dropdown.appendChild(empty);
     } else {
         jobs.forEach(job => {
@@ -403,7 +438,7 @@ async function loadActiveJobsDropdown() {
             item.setAttribute('tabindex', '0');
             item.innerHTML = `
                 <span class="sp-jobs-item-icon">💼</span>
-                <span class="sp-jobs-item-title">${job.title ?? 'Untitled Job'}</span>
+                <span class="sp-jobs-item-title">${job.title ?? t('untitledJob')}</span>
             `;
 
             const selectJob = () => {
@@ -527,13 +562,6 @@ function getTierInfo(score) {
     return              { cls: 'tier-inapte',     label: 'Inapte' };
 }
 
-function getRecInfo(rec) {
-    const r = (rec || '').toLowerCase();
-    if (r === 'hire') return { cls: 'hire', label: t('recHire') };
-    if (r === 'interview') return { cls: 'interview', label: t('recInterview') };
-    return { cls: 'reject', label: t('recReject') };
-}
-
 function populateList(ulEl, items) {
     ulEl.innerHTML = '';
     (items || []).forEach(item => {
@@ -582,9 +610,6 @@ function renderSubscores(data) {
 
     // Try every known field name variant from the API
     const sub = data.sub_scores ?? data.subscores ?? data.scores ?? data ?? {};
-
-    // Log the raw sub object so we can see exactly what the API returns
-    console.debug('[Teamther.ai] renderSubscores sub:', JSON.stringify(sub));
 
     const expVal  = sub.experience_score  ?? sub.exp_score         ?? sub.experience   ?? 0;
     const compVal = sub.skills_score      ?? sub.competences_score  ?? sub.comp_score   ?? sub.skills       ?? 0;
@@ -645,7 +670,8 @@ function renderResults(data) {
     els.scoreBtn.hidden = true;
     els.resetBtn.hidden = false;
     // Also hide the PDF button area after a result is shown
-    document.querySelector('.sp-or-divider').hidden = true;
+    const orDivider = document.querySelector('.sp-or-divider');
+    if (orDivider) orDivider.hidden = true;
     els.pdfUploadLabel.hidden = true;
 }
 
@@ -666,8 +692,6 @@ function clearError() {
 // ─────────────────────────────────────────────────────────────────────────────
 // 10. Loading State helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-function tiny(id) { return document.getElementById(id); }
 
 function setLoading(isLoading) {
     els.scoreBtn.disabled = isLoading;
@@ -768,7 +792,6 @@ async function handleScoreClick() {
     setLoading(true);
 
     try {
-        console.log('[Debug] Sending jobLanguage:', jobLanguage);
         const response = await chrome.runtime.sendMessage({
             action: 'SCORE_CANDIDATE',
             tabId: activeTab.id,
@@ -779,19 +802,20 @@ async function handleScoreClick() {
 
         if (!response?.success) {
             if (response?.error === 'QUOTA_EXCEEDED' || response?.remainingScans === 0) {
-                // Guest quota hit — BUG 1 FIX: immediately reflect 0 in UI and persist exhausted state
                 updateScanBadge(0);
                 els.scanCountDisplay.textContent = '0';
                 chrome.storage.local.set({ credits_exhausted: true });
                 showError(t('errQuota'));
             } else if (response?.error === 'CREDITS_EXHAUSTED') {
-                // Paid credits used up — stay logged in, show upgrade prompt
-                showError('✨ You\'ve used all your plan credits. Visit Teamther.ai to upgrade your package.');
+                showError(t('errCreditsExhausted'));
             } else if (response?.error === 'SESSION_EXPIRED') {
-                // Session expired — show message, do NOT auto-logout (may just be a token issue)
-                showError('⚠ Authentication error. Please log out and log back in.');
+                showError(t('errSessionExpired'));
+            } else if (response?.error === 'ERR_SCRAPE_CONNECT') {
+                showError(t('errScrape'));
+            } else if (response?.error === 'ERR_SCRAPE_FAILED') {
+                showError(t('errScrapeFailed'));
             } else {
-                showError(response?.error || t('errGeneric'));
+                showError(t('errGeneric'));
             }
             return;
         }
@@ -858,7 +882,7 @@ async function handlePdfUpload(event) {
     const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
     if (file.size > MAX_PDF_BYTES) {
         els.pdfFileInput.value = '';
-        showError('File size exceeds 5MB limit. Please upload a smaller file.');
+        showError(t('errPdfTooLarge'));
         return;
     }
 
@@ -882,7 +906,7 @@ async function handlePdfUpload(event) {
     try {
         cvText = await extractTextFromPdf(file);
     } catch (err) {
-        showError(`⚠ PDF extraction failed: ${err.message || 'Unknown error.'}`);
+        showError(t('errPdfExtract'));
         setPdfLoading(false);
         return;
     }
@@ -898,7 +922,6 @@ async function handlePdfUpload(event) {
     els.pdfBtnIcon.textContent = '🤖';
 
     try {
-        console.log('[Debug] Sending jobLanguage:', jobLanguage);
         const response = await chrome.runtime.sendMessage({
             action: 'SCORE_PDF',
             cvText,
@@ -910,17 +933,20 @@ async function handlePdfUpload(event) {
 
         if (!response?.success) {
             if (response?.error === 'QUOTA_EXCEEDED' || response?.remainingScans === 0) {
-                // BUG 1 FIX: immediately reflect 0 in UI and persist exhausted state
                 updateScanBadge(0);
                 els.scanCountDisplay.textContent = '0';
                 chrome.storage.local.set({ credits_exhausted: true });
                 showError(t('errQuota'));
             } else if (response?.error === 'CREDITS_EXHAUSTED' || response?.error === 'credits_exhausted') {
-                showError('✨ You\'ve used all your plan credits. Visit Teamther.ai to upgrade your package.');
+                showError(t('errCreditsExhausted'));
             } else if (response?.error === 'SESSION_EXPIRED' || response?.error?.includes('log in again')) {
-                showError('⚠ Authentication error. Please log out and log back in.');
+                showError(t('errSessionExpired'));
+            } else if (response?.error === 'ERR_SCRAPE_CONNECT') {
+                showError(t('errScrape'));
+            } else if (response?.error === 'ERR_SCRAPE_FAILED') {
+                showError(t('errScrapeFailed'));
             } else {
-                showError(response?.error || t('errGeneric'));
+                showError(t('errGeneric'));
             }
             return;
         }
@@ -952,7 +978,8 @@ function resetView() {
     els.scoreBtn.hidden = false;
     els.resetBtn.hidden = true;
     els.resultsContainer.hidden = true;
-    document.querySelector('.sp-or-divider').hidden = false;
+    const orDivider2 = document.querySelector('.sp-or-divider');
+    if (orDivider2) orDivider2.hidden = false;
     els.pdfUploadLabel.hidden = false;
 
     els.ringFill.style.strokeDashoffset = CIRCUMFERENCE;
@@ -997,7 +1024,7 @@ function showLoginView() {
     els.loginPassword.value = '';
     els.loginError.hidden = true;
     els.loginError.textContent = '';
-    els.signInBtnLabel.textContent = 'Sign In';
+    els.signInBtnLabel.textContent = t('signIn');
     els.signInBtnIcon.textContent = '🔐';
     els.signInBtn.disabled = false;
     // Auto-focus email for UX
@@ -1013,14 +1040,14 @@ async function handleLogin() {
     const password = els.loginPassword.value;
 
     if (!email || !password) {
-        els.loginError.textContent = '⚠ Please enter your email and password.';
+        els.loginError.textContent = t('errLoginEmpty');
         els.loginError.hidden = false;
         return;
     }
 
     // Loading state on button
     els.signInBtn.disabled = true;
-    els.signInBtnLabel.textContent = 'Signing in…';
+    els.signInBtnLabel.textContent = t('signingIn');
     els.signInBtnIcon.textContent = '⏳';
     els.loginError.hidden = true;
 
@@ -1047,7 +1074,7 @@ async function handleLogin() {
         els.loginError.hidden = false;
     } finally {
         els.signInBtn.disabled = false;
-        els.signInBtnLabel.textContent = 'Sign In';
+        els.signInBtnLabel.textContent = t('signIn');
         els.signInBtnIcon.textContent = '🔐';
     }
 }
@@ -1065,7 +1092,7 @@ async function handleLogout() {
         const statusResp = await chrome.runtime.sendMessage({ action: 'GET_STATUS' });
         if (statusResp?.success) updateScanBadge(statusResp.data.remaining_credits);
     } catch (_) {
-        updateScanBadge(5);
+        updateScanBadge(MAX_SCANS);
     }
 }
 
@@ -1112,6 +1139,10 @@ async function init() {
     const stored = await chrome.storage.local.get(['lang', 'scan_count']);
     if (stored.lang) currentLang = stored.lang;
     applyTranslations();
+    // Set upgrade link to correct language on init
+    if (els.upgradeBtn) {
+        els.upgradeBtn.href = `https://app.teamther.ai/packages?lang=${currentLang}`;
+    }
 
     await loadJobContext();
 
@@ -1159,6 +1190,9 @@ async function init() {
                         const freshSession = await chrome.runtime.sendMessage({ action: 'INIT_SESSION' });
                         if (freshSession?.success && freshSession?.data?.remaining_credits !== undefined) {
                             updateScanBadge(freshSession.data.remaining_credits);
+                        }
+                        if (freshSession?.success && freshSession?.data?.remaining_credits > 0) {
+                            await chrome.storage.local.remove('credits_exhausted');
                         }
                     } catch (_) {}
                 }
@@ -1276,8 +1310,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             const file = new File([pdf], filename, { type: 'application/pdf' });
 
             const uploadUrl = `${baseUrl}/jobs/${jobId}/cvs/upload/`;
-            console.warn('[Teamther.ai] UPLOAD_CV (renderer): uploading PDF to', uploadUrl,
-                         '| size:', file.size, 'bytes');
 
             // Try common FormData field names in order until the server accepts one.
             // We cache the working field name in storage so future uploads skip the retry loop.
@@ -1296,7 +1328,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 const formData = new FormData();
                 formData.append(fieldName, file, filename);
 
-                console.warn('[Teamther.ai] UPLOAD_CV: trying field name:', fieldName);
                 response = await fetch(uploadUrl, {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` },
@@ -1311,7 +1342,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                                             respText.includes('no file') ||
                                             respText.includes('required');
                     if (response.status === 400 && isFieldNameError) {
-                        console.warn(`[Teamther.ai] UPLOAD_CV: field "${fieldName}" rejected (${response.status}), trying next…`);
                         // If the cached field stopped working, clear the cache
                         if (fieldName === cachedField) {
                             chrome.storage.local.remove('cv_upload_field');
@@ -1324,7 +1354,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 }
 
                 // Server accepted — cache this field name for future uploads
-                console.warn('[Teamther.ai] UPLOAD_CV: accepted with field name:', fieldName);
                 chrome.storage.local.set({ cv_upload_field: fieldName });
                 uploaded = true;
                 break;
@@ -1352,7 +1381,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 return;
             }
 
-            console.warn('[Teamther.ai] UPLOAD_CV (renderer): success, cvId:', cvId);
             sendResponse({ success: true, cvId });
         } catch (err) {
             sendResponse({ success: false, error: err.message });
