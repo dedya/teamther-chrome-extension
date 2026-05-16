@@ -203,7 +203,22 @@ async function handleScoreCandidate(tabId, jobTitle, jobDescription, jobLanguage
         }
 
         if (!scrapeResult?.success) {
-            sendResponse({ success: false, error: scrapeResult?.error || 'ERR_SCRAPE_FAILED' });
+            const errMsg = scrapeResult?.error ?? '';
+            let errorCode = 'ERR_SCRAPE_FAILED';
+
+            if (errMsg.toLowerCase().includes('not a cv') ||
+                errMsg.toLowerCase().includes('not a resume') ||
+                errMsg.toLowerCase().includes('not cv')) {
+                errorCode = 'ERR_NOT_CV';
+            } else if (errMsg.toLowerCase().includes('private') ||
+                       errMsg.toLowerCase().includes('restricted')) {
+                errorCode = 'ERR_PROFILE_PRIVATE';
+            } else if (errMsg.toLowerCase().includes('not loaded') ||
+                       errMsg.toLowerCase().includes('empty')) {
+                errorCode = 'ERR_NOT_LOADED';
+            }
+
+            sendResponse({ success: false, error: errorCode });
             return;
         }
 
@@ -269,6 +284,13 @@ async function handleScoreCandidate(tabId, jobTitle, jobDescription, jobLanguage
         // 403 = paid credits exhausted — keep logged in, show upgrade prompt
         if (err.status === 403) {
             sendResponse({ success: false, error: 'CREDITS_EXHAUSTED' });
+            return;
+        }
+        // API-level "not a CV" detection — backend rejected the content
+        if (err.message?.toLowerCase().includes('not a cv') ||
+            err.message?.toLowerCase().includes('not a resume') ||
+            err.message?.toLowerCase().includes('not cv')) {
+            sendResponse({ success: false, error: 'ERR_NOT_CV' });
             return;
         }
         sendResponse({ success: false, error: err.message || 'Unexpected error.' });

@@ -65,6 +65,11 @@ const TRANSLATIONS = {
         errLoginEmpty: '⚠ Please enter your email and password.',
         errScrape: '⚠ Could not communicate with the page. Try refreshing the LinkedIn/Indeed tab.',
         errScrapeFailed: '⚠ Could not extract profile. Please refresh the LinkedIn tab and try again.',
+        errProfileNotLoaded: '⚠ Profile not fully loaded. Please scroll down the LinkedIn page and try again.',
+        errProfilePrivate: '⚠ This profile is restricted or private. Please try a public candidate profile.',
+        errProfileNotCV: '⚠ This does not appear to be a candidate profile. Please open a regular LinkedIn profile (linkedin.com/in/username).',
+        errProfilePublicFigure: '⚠ Public figure profiles cannot be scored. Please try a regular candidate profile.',
+        errLinkedInChanged: '⚠ Could not read this profile. LinkedIn may have updated its layout. Please refresh the page and try again.',
         signIn: 'Sign In',
         signingIn: 'Signing in\u2026',
         loginTitle: 'Sign in to Teamther.ai',
@@ -123,6 +128,11 @@ const TRANSLATIONS = {
         errLoginEmpty: '⚠ Veuillez entrer votre email et votre mot de passe.',
         errScrape: '⚠ Impossible de communiquer avec la page. Essayez de rafraîchir l\'onglet LinkedIn/Indeed.',
         errScrapeFailed: '⚠ Impossible d\'extraire le profil. Veuillez rafraîchir l\'onglet LinkedIn et réessayer.',
+        errProfileNotLoaded: '⚠ Profil non chargé complètement. Veuillez faire défiler la page LinkedIn et réessayer.',
+        errProfilePrivate: '⚠ Ce profil est restreint ou privé. Veuillez essayer un profil candidat public.',
+        errProfileNotCV: '⚠ Ce profil ne semble pas être un candidat. Veuillez ouvrir un profil LinkedIn standard (linkedin.com/in/nom).',
+        errProfilePublicFigure: '⚠ Les profils de personnalités publiques ne peuvent pas être évalués. Veuillez essayer un profil candidat standard.',
+        errLinkedInChanged: '⚠ Impossible de lire ce profil. LinkedIn a peut-être mis à jour sa mise en page. Veuillez actualiser la page et réessayer.',
         signIn: 'Se connecter',
         signingIn: 'Connexion en cours\u2026',
         loginTitle: 'Connectez-vous à Teamther.ai',
@@ -810,10 +820,17 @@ async function handleScoreClick() {
                 showError(t('errCreditsExhausted'));
             } else if (response?.error === 'SESSION_EXPIRED') {
                 showError(t('errSessionExpired'));
+                handleSessionExpired();
+            } else if (response?.error === 'ERR_NOT_CV') {
+                showError(t('errProfileNotCV'));
+            } else if (response?.error === 'ERR_PROFILE_PRIVATE') {
+                showError(t('errProfilePrivate'));
+            } else if (response?.error === 'ERR_NOT_LOADED') {
+                showError(t('errProfileNotLoaded'));
             } else if (response?.error === 'ERR_SCRAPE_CONNECT') {
                 showError(t('errScrape'));
             } else if (response?.error === 'ERR_SCRAPE_FAILED') {
-                showError(t('errScrapeFailed'));
+                showError(t('errLinkedInChanged'));
             } else {
                 showError(t('errGeneric'));
             }
